@@ -5,20 +5,59 @@ import { fireEvent, render } from '@testing-library/react';
 import { Application } from '../../src/client/Application';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
-import { CartApi, ExampleApi } from '../../src/client/api';
 import { initStore } from '../../src/client/store';
 
 import "@testing-library/jest-dom";
+import { CartState, CheckoutFormData, CheckoutResponse, Product, ProductShortInfo } from '../../src/common/types';
+import { CartApi, ExampleApi } from '../../src/client/api';
+import { AxiosResponse } from 'axios';
 
 describe('Наличие ссылок в шапке', () => {
     let header: HTMLElement;
 
     beforeEach(() => {
+        const productShortInfos = [{
+            id: 1, name: 'first product', price: 120
+        }, {
+            id: 2, name: 'second product', price: 720
+        }, {
+            id: 3, name: 'third product', price: 43
+        }];
+
+        const productFullInfo = {
+            description: "Some nice description of a product",
+            material: "porcelain",
+            color: "white",
+            id: 1,
+            name: "first product",
+            price: 120
+        };
+
+        const axiosResponseObj = {
+            status: 200,
+            statusText: "OK",
+            headers: {},
+            config: {},
+            request: {}
+        };
+
         const basename = '/hw/store';
         
         const api = new ExampleApi(basename);
         const cart = new CartApi();
         const store = initStore(api, cart);
+
+        api.getProducts = async function(): Promise<AxiosResponse<ProductShortInfo[], any>> {
+            return Promise.resolve({...axiosResponseObj, data: productShortInfos});
+        }
+
+        api.getProductById = async function(id: number): Promise<AxiosResponse<Product, any>> {
+            return Promise.resolve({...axiosResponseObj, data: {...productFullInfo, id}});
+        }
+
+        api.checkout = async function(form: CheckoutFormData, cart: CartState): Promise<AxiosResponse<CheckoutResponse, any>> {
+            return Promise.resolve({...axiosResponseObj, data: {id: 2}});
+        }
         
         const app = (
             <BrowserRouter basename={basename}>
