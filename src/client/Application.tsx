@@ -37,10 +37,10 @@ export const Application: FC = () => {
         <nav data-testid="header" className="navbar navbar-expand-sm navbar-light bg-light">
             <div className="container">
                 <Link className={bem('Brand', ['navbar-brand'])} to="/">Example store</Link>
-                <button className={bem('Toggler', ['navbar-toggler'])} aria-label="Toggle navigation" onClick={toggle}>
+                <button data-testid="burget-toggler" className={bem('Toggler', ['navbar-toggler'])} aria-label="Toggle navigation" onClick={toggle}>
                     <span className="navbar-toggler-icon"></span>
                 </button>
-                <div className={bem('Menu', [navbarClass])}>
+                <div data-testid="navbar-menu" className={bem('Menu', [navbarClass])}>
                     <div className="navbar-nav">
                         <NavLink className="nav-link" activeClassName="active" to="/catalog" onClick={hide}>Catalog</NavLink>
                         <NavLink className="nav-link" activeClassName="active" to="/delivery" onClick={hide}>Delivery</NavLink>
