@@ -137,6 +137,7 @@ export const rootEpic = combineEpics(
 );
 
 export function initStore(api: ExampleApi, cart: CartApi) {
+    
     const rootReducer = createRootReducer({
         cart: cart.getState()
     });
