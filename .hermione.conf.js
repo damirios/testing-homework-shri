@@ -15,7 +15,7 @@ module.exports = {
         width: 1920,
         height: 1080
       },
-      retry: 2
+      retry: 1
     },
   },
   plugins: {
