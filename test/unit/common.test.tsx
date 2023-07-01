@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 
 import { Application } from '../../src/client/Application';
 import { Provider } from 'react-redux';
@@ -12,76 +12,72 @@ import { CartState, CheckoutFormData, CheckoutResponse, Product, ProductShortInf
 import { CartApi, ExampleApi } from '../../src/client/api';
 import { AxiosResponse } from 'axios';
 
+function mountApp(api: ExampleApi, cart: CartApi, basename: string): React.JSX.Element {
+    const productShortInfos = [{
+        id: 1, name: 'first product', price: 120
+    }, {
+        id: 2, name: 'second product', price: 720
+    }, {
+        id: 3, name: 'third product', price: 43
+    }];
+
+    const productFullInfo = {
+        description: "Some nice description of a product",
+        material: "porcelain",
+        color: "white",
+        id: 1,
+        name: "first product",
+        price: 120
+    };
+
+    const axiosResponseObj = {
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        config: {},
+        request: {}
+    };
+
+    api.getProducts = async function(): Promise<AxiosResponse<ProductShortInfo[], any>> {
+        return Promise.resolve({...axiosResponseObj, data: productShortInfos});
+    }
+    api.getProductById = async function(id: number): Promise<AxiosResponse<Product, any>> {
+        return Promise.resolve({...axiosResponseObj, data: {...productFullInfo, id}});
+    }
+    api.checkout = async function(form: CheckoutFormData, cart: CartState): Promise<AxiosResponse<CheckoutResponse, any>> {
+        return Promise.resolve({...axiosResponseObj, data: {id: 2}});
+    }
+
+    let cartProductsMock: CartState = {};
+    cart.getState = function(): CartState {
+        return cartProductsMock;
+    }
+    cart.setState = function(cart: CartState) {
+        cartProductsMock = {...cartProductsMock, ...cart};
+    }
+
+    const store = initStore(api, cart);
+    
+    const app = (
+        <BrowserRouter basename={basename}>
+            <Provider store={store}>
+                <Application />
+            </Provider>
+        </BrowserRouter>
+    );
+
+    return app;
+}
+
 describe('Наличие ссылок в шапке', () => {
     let header: HTMLElement;
 
     beforeEach(() => {
-        const productShortInfos = [{
-            id: 1, name: 'first product', price: 120
-        }, {
-            id: 2, name: 'second product', price: 720
-        }, {
-            id: 3, name: 'third product', price: 43
-        }];
-
-        const productFullInfo = {
-            description: "Some nice description of a product",
-            material: "porcelain",
-            color: "white",
-            id: 1,
-            name: "first product",
-            price: 120
-        };
-
-        const axiosResponseObj = {
-            status: 200,
-            statusText: "OK",
-            headers: {},
-            config: {},
-            request: {}
-        };
-
         const basename = '/hw/store';
         const api = new ExampleApi(basename);
         const cart = new CartApi();
 
-        api.getProducts = async function(): Promise<AxiosResponse<ProductShortInfo[], any>> {
-            return Promise.resolve({...axiosResponseObj, data: productShortInfos});
-        }
-        api.getProductById = async function(id: number): Promise<AxiosResponse<Product, any>> {
-            return Promise.resolve({...axiosResponseObj, data: {...productFullInfo, id}});
-        }
-        api.checkout = async function(form: CheckoutFormData, cart: CartState): Promise<AxiosResponse<CheckoutResponse, any>> {
-            return Promise.resolve({...axiosResponseObj, data: {id: 2}});
-        }
-
-        let cartMock: CartState = {
-            1: {
-                name: 'cool product',
-                price: 542,
-                count: 4,
-            },
-            2: {
-                name: 'very cool product',
-                price: 859,
-                count: 1,
-            },
-        };
-        cart.getState = function(): CartState {
-            return cartMock;
-        }
-        cart.setState = function(cart: CartState) {
-            cartMock = {...cartMock, ...cart};
-        }
-        
-        const store = initStore(api, cart);
-        const app = (
-            <BrowserRouter basename={basename}>
-                <Provider store={store}>
-                    <Application />
-                </Provider>
-            </BrowserRouter>
-        );
+        const app = mountApp(api, cart, basename);
         
         const { getByTestId } = render(app);
         header = getByTestId("header");
@@ -212,77 +208,16 @@ describe("Отображение товаров в каталоге", () => {
     let api: ExampleApi;
     let cart: CartApi;
     let basename = "/hw/store";
+    let app: React.JSX.Element;
 
     beforeEach(() => {        
         api = new ExampleApi(basename);
         cart = new CartApi();
 
-        const productShortInfos = [{
-            id: 1, name: 'first product', price: 120
-        }, {
-            id: 2, name: 'second product', price: 720
-        }, {
-            id: 3, name: 'third product', price: 43
-        }];
-
-        const productFullInfo = {
-            description: "Some nice description of a product",
-            material: "porcelain",
-            color: "white",
-            id: 1,
-            name: "first product",
-            price: 120
-        };
-
-        const axiosResponseObj = {
-            status: 200,
-            statusText: "OK",
-            headers: {},
-            config: {},
-            request: {}
-        };
-
-        api.getProducts = async function(): Promise<AxiosResponse<ProductShortInfo[], any>> {
-            return Promise.resolve({...axiosResponseObj, data: productShortInfos});
-        }
-        api.getProductById = async function(id: number): Promise<AxiosResponse<Product, any>> {
-            return Promise.resolve({...axiosResponseObj, data: {...productFullInfo, id}});
-        }
-        api.checkout = async function(form: CheckoutFormData, cart: CartState): Promise<AxiosResponse<CheckoutResponse, any>> {
-            return Promise.resolve({...axiosResponseObj, data: {id: 2}});
-        }
-
-        let cartProductsMock: CartState = {
-            1: {
-                name: 'cool product',
-                price: 542,
-                count: 4,
-            },
-            2: {
-                name: 'very cool product',
-                price: 859,
-                count: 1,
-            },
-        };
-        cart.getState = function(): CartState {
-            return cartProductsMock;
-        }
-        cart.setState = function(cart: CartState) {
-            cartProductsMock = {...cartProductsMock, ...cart};
-        }
+        app = mountApp(api, cart, basename);
     });
     
-    it("Названия товаров на странице содержат названия товаров, полученных с сервера", async () => {
-        const store = initStore(api, cart);
-        
-        const app = (
-            <BrowserRouter basename={basename}>
-                <Provider store={store}>
-                    <Application />
-                </Provider>
-            </BrowserRouter>
-        );
-        
+    it("Названия товаров на странице содержат названия товаров, полученных с сервера", async () => {     
         const { findAllByTestId, getByTestId } = render(app);
         const catalogLink = getByTestId("catalog-link");
         fireEvent.click(catalogLink);
@@ -298,16 +233,6 @@ describe("Отображение товаров в каталоге", () => {
     });
 
     it("Каждый товар в каталоге содержит название, цену и ссылку на страницу товара", async () => {
-        const store = initStore(api, cart);
-        
-        const app = (
-            <BrowserRouter basename={basename}>
-                <Provider store={store}>
-                    <Application />
-                </Provider>
-            </BrowserRouter>
-        );
-        
         const { findAllByTestId, getByTestId } = render(app);
         const catalogLink = getByTestId("catalog-link");
         fireEvent.click(catalogLink);
@@ -326,17 +251,7 @@ describe("Отображение товаров в каталоге", () => {
         }
     });
 
-    it('Страница отдельного товара содержит его название, описание, цену, цвет, материал, кнопку "добавить в корзину"', async () => {
-        const store = initStore(api, cart);
-        
-        const app = (
-            <BrowserRouter basename={basename}>
-                <Provider store={store}>
-                    <Application />
-                </Provider>
-            </BrowserRouter>
-        );
-        
+    it('Страница отдельного товара содержит его название, описание, цену, цвет, материал, кнопку "добавить в корзину"', async () => {        
         const { findByTestId, findAllByTestId, getByTestId } = render(app);
         const catalogLink = getByTestId("catalog-link");
         fireEvent.click(catalogLink);
@@ -362,17 +277,32 @@ describe("Отображение товаров в каталоге", () => {
                 expect(material).toBeTruthy();
             }
         }
-        
-        for (let i = 0; i < productsOnPage.length; i++) {
-            const singleProduct = productsOnPage[i];
-            const title = singleProduct.querySelector('.card-title');
-            const price = singleProduct.querySelector('.card-text');
-            const link = singleProduct.querySelector('.card-link');
+    });
+});
 
-            expect(title).toBeTruthy();
-            expect(price).toBeTruthy();
-            expect(link).toBeTruthy();
-            expect(link?.getAttribute('href')).toBeTruthy();
-        }
+describe("Взаимодействие с корзиной на странице товара", () => {   
+    it('При нажатии на "добавить в корзину" товар добавляется в корзину - появляется уведомление на странице товара и в каталоге', async () => {
+        const basename = "/hw/store";
+        const api = new ExampleApi(basename);
+        const cart = new CartApi();
+
+        const app = mountApp(api, cart, basename);
+        const { findAllByTestId, findByTestId, queryByTestId } = render(app);
+        const catalogLink = await findByTestId("catalog-link");
+
+        fireEvent.click(catalogLink);
+        const productDetailsLink = await findAllByTestId("product-details-link").then(productsLinks => productsLinks[0]);
+        expect(queryByTestId("success-message")).not.toBeInTheDocument(); // сообщения нет в каталоге до нажатия кнопки
+
+        fireEvent.click(productDetailsLink);
+        
+        const addToCartButton = await findByTestId("add-to-cart");
+        expect(queryByTestId("success-message")).not.toBeInTheDocument(); // сообщения нет на странице товара до нажатия кнопки
+        fireEvent.click(addToCartButton);
+        expect(queryByTestId("success-message")).toBeInTheDocument(); // сообщение есть на странице товара после нажатия кнопки
+
+        fireEvent.click(catalogLink);
+        await findAllByTestId("product-details-link");
+        expect(queryByTestId("success-message")).toBeInTheDocument(); // сообщение есть в каталоге после нажатия кнопки
     });
 });

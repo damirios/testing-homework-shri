@@ -6,7 +6,7 @@
         "test:unit": "jest",
         "test:e2e": ".\\node_modules\\.bin\\hermione",
         "test:e2e:gui": ".\\node_modules\\.bin\\hermione gui",
-        "test": "cross-env BUG_ID=1 npm run test:unit",
+        "test": "npm run test:unit",
         "build": "webpack --mode=production --node-env=production",
         "watch": "webpack --watch"
     },

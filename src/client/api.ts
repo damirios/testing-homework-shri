@@ -7,7 +7,7 @@ export class ExampleApi {
     }
 
     async getProducts() {
-        return await axios.get<ProductShortInfo[]>(`${this.basename}/api/products`);
+        return await axios.get<ProductShortInfo[]>(`${this.basename}/api/products`); 
     }
 
     async getProductById(id: number) {

@@ -31,7 +31,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                 <p className={bem("Description")}>{product.description}</p>
                 <p className={bem("Price", ['fs-3'])}>${product.price}</p>
                 <p>
-                    <button className={bem("AddToCart", ['btn', 'btn-primary', btnSizeClass])} onClick={onClick}>Add to Cart</button>
+                    <button data-testid="add-to-cart" className={bem("AddToCart", ['btn', 'btn-primary', btnSizeClass])} onClick={onClick}>Add to Cart</button>
                     <CartBadge id={product.id} />
                 </p>
                 <dl>
