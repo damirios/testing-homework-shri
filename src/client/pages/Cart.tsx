@@ -82,7 +82,7 @@ export const Cart: React.FC = () => {
     );
 
     const form = cartIsEmpty ? null : (
-        <div className="row">
+        <div data-testid="checkout-form" className="row">
             <div className="col-12 col-sm-8 col-md-6 col-lg-4">
                 <h2>Сheckout</h2>
                 <Form onSubmit={onSubmit} />
@@ -95,7 +95,7 @@ export const Cart: React.FC = () => {
     const orderInfo = cartIsEmpty && latestOrderId ? (
         <div className="row my-2">
             <div className="col-12 col-sm-8 col-md-6">
-                <div className={bem('SuccessMessage', ['alert', alertClass])}>
+                <div data-testid="success-message" className={bem('SuccessMessage', ['alert', alertClass])}>
                     <h4 className="alert-heading">Well done!</h4>
                     <p>Order #<strong className={bem('Number')}>{latestOrderId}</strong> has been successfully completed.</p>
                     <hr/>

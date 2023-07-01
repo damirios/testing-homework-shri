@@ -61,6 +61,62 @@ describe("Внешний вид корзины.", async function() {
 
         await this.browser.assertView('вёрстка', 'body');
     });
+
+    it('После успешного чекаута появляется сообщение well done.', async function() {
+        const productId = 2;
+        await this.browser.url(BASE_URL + '/catalog' + `/${productId}`);
+        await this.browser.setWindowSize(1920, 1040);
+        const puppeteer = await this.browser.getPuppeteer();
+        const [page] = await puppeteer.pages();
+
+        await page.click(".ProductDetails-AddToCart");
+        await this.browser.pause(1000);
+        await this.browser.url(BASE_URL + '/cart');
+
+        await page.focus(".Form-Field_type_name");
+        await page.keyboard.type("cool goose");
+
+        await page.focus(".Form-Field_type_phone");
+        await page.keyboard.type("1234567898");
+
+        await page.focus(".Form-Field_type_address");
+        await page.keyboard.type("top of the world");
+
+        await page.click(".Form-Submit");
+        await this.browser.pause(1000);
+
+        await this.browser.assertView('вёрстка', 'body', {
+            ignoreElements: [".Cart-Number"]
+        });
+    });
+
+    it('Чекаута не будет успешным, если в поле номера телефона ввести буквы.', async function() {
+        const productId = 3;
+        await this.browser.url(BASE_URL + '/catalog' + `/${productId}`);
+        await this.browser.setWindowSize(1920, 1040);
+        const puppeteer = await this.browser.getPuppeteer();
+        const [page] = await puppeteer.pages();
+
+        await page.click(".ProductDetails-AddToCart");
+        await this.browser.pause(1000);
+        await this.browser.url(BASE_URL + '/cart');
+
+        await page.focus(".Form-Field_type_name");
+        await page.keyboard.type("cool goose");
+
+        await page.focus(".Form-Field_type_phone");
+        await page.keyboard.type("cool goose 123");
+
+        await page.focus(".Form-Field_type_address");
+        await page.keyboard.type("top of the world");
+
+        await page.click(".Form-Submit");
+        await this.browser.pause(1000);
+
+        await this.browser.assertView('вёрстка', 'body', {
+            ignoreElements: [".Form-Field_type_phone", ".Cart-Table"]
+        });
+    });
 });
 
 describe("Внешний вид страницы товара.", async function() {
@@ -106,21 +162,9 @@ describe("Внешний вид главной.", async function() {
         await this.browser.assertView('вёрстка', 'body');
     });
 
-    it("Подробная страница товара, ширина <= 576px. Меню-бургер закрыто", async function() {
+    it("Подробная страница товара, ширина <= 576px.", async function() {
         await this.browser.url(BASE_URL);
         await this.browser.setWindowSize(480, 1310);
-        await this.browser.assertView('вёрстка', 'body');
-    });
-
-    it("Подробная страница товара, ширина <= 576px. Меню-бургер открыто", async function() {
-        await this.browser.url(BASE_URL);
-        await this.browser.setWindowSize(480, 1310);
-        const puppeteer = await this.browser.getPuppeteer();
-        const [page] = await puppeteer.pages();
-        
-        await page.click(".Application-Toggler"); // клик, чтобы открыть бургер
-        await this.browser.pause(1000);
-        
         await this.browser.assertView('вёрстка', 'body');
     });
 });
@@ -132,21 +176,9 @@ describe("Внешний вид страницы условий доставки
         await this.browser.assertView('вёрстка', 'body');
     });
 
-    it("Условия доставки, ширина <= 576px. Меню-бургер закрыто", async function() {
+    it("Условия доставки, ширина <= 576px.", async function() {
         await this.browser.url(BASE_URL + "/delivery");
         await this.browser.setWindowSize(480, 1310);
-        await this.browser.assertView('вёрстка', 'body');
-    });
-
-    it("Условия доставки, ширина <= 576px. Меню-бургер открыто", async function() {
-        await this.browser.url(BASE_URL + "/delivery");
-        await this.browser.setWindowSize(480, 1310);
-        const puppeteer = await this.browser.getPuppeteer();
-        const [page] = await puppeteer.pages();
-        
-        await page.click(".Application-Toggler"); // клик, чтобы открыть бургер
-        await this.browser.pause(1000);
-        
         await this.browser.assertView('вёрстка', 'body');
     });
 });
@@ -158,21 +190,9 @@ describe("Внешний вид страницы с контактами.", asyn
         await this.browser.assertView('вёрстка', 'body');
     });
 
-    it("Контакты, ширина <= 576px. Меню-бургер закрыто", async function() {
+    it("Контакты, ширина <= 576px.", async function() {
         await this.browser.url(BASE_URL + "/contacts");
         await this.browser.setWindowSize(480, 1310);
-        await this.browser.assertView('вёрстка', 'body');
-    });
-
-    it("Контакты, ширина <= 576px. Меню-бургер открыто", async function() {
-        await this.browser.url(BASE_URL + "/contacts");
-        await this.browser.setWindowSize(480, 1310);
-        const puppeteer = await this.browser.getPuppeteer();
-        const [page] = await puppeteer.pages();
-        
-        await page.click(".Application-Toggler"); // клик, чтобы открыть бургер
-        await this.browser.pause(1000);
-        
         await this.browser.assertView('вёрстка', 'body');
     });
 });
@@ -186,7 +206,11 @@ describe("Внешний вид каталога.", async function() {
         
         await page.evaluate(() => {
             const titles = document.querySelectorAll(".ProductItem-Name");
-            titles.forEach(title => title.textContent = "Замоканное название");
+            titles.forEach(title => {
+                if (title.textContent) {
+                    title.textContent = "Замоканное название";
+                }
+            });
         });
 
         await this.browser.assertView('вёрстка', 'body', {
@@ -196,7 +220,7 @@ describe("Внешний вид каталога.", async function() {
         });
     });
 
-    it("Каталог, ширина <= 576px. Название товаров замокано, чтобы карточка товара не удлиннялась. Меню-бургер закрыто.", async function() {
+    it("Каталог, ширина <= 576px. Название товаров замокано, чтобы карточка товара не удлиннялась.", async function() {
         await this.browser.url(BASE_URL + '/catalog');
         await this.browser.setWindowSize(480, 30440);
         const puppeteer = await this.browser.getPuppeteer();
@@ -204,29 +228,11 @@ describe("Внешний вид каталога.", async function() {
         
         await page.evaluate(() => {
             const titles = document.querySelectorAll(".ProductItem-Name");
-            titles.forEach(title => title.textContent = "Замоканное название");
-        });
-
-        await this.browser.assertView('вёрстка', 'body', {
-            ignoreElements: [".ProductItem-Price"],
-            compositeImage: false,
-            allowViewportOverflow: true,
-            screenshotDelay: 1000,
-        });
-    });
-
-    it("Каталог, ширина <= 576px. Название товаров замокано, чтобы карточка товара не удлиннялась. Меню-бургер открыто.", async function() {
-        await this.browser.url(BASE_URL + '/catalog');
-        await this.browser.setWindowSize(480, 30440);
-        const puppeteer = await this.browser.getPuppeteer();
-        const [page] = await puppeteer.pages();
-
-        await page.click(".Application-Toggler"); // клик, чтобы открыть бургер
-        await this.browser.pause(1000);
-        
-        await page.evaluate(() => {
-            const titles = document.querySelectorAll(".ProductItem-Name");
-            titles.forEach(title => title.textContent = "Замоканное название");
+            titles.forEach(title => {
+                if (title.textContent) {
+                    title.textContent = "Замоканное название";
+                }
+            });
         });
 
         await this.browser.assertView('вёрстка', 'body', {

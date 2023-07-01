@@ -452,5 +452,41 @@ describe("Функционал корзины", () => {
         expect(href).toMatch(/.*\/hw\/store\/catalog/);
     });
 
-    
+    it('При наличии товара в корзине там же должна быть форма для чекаута.', async () => {
+        const basename = "/hw/store";
+        const api = new ExampleApi(basename);
+        const cart = new CartApi();
+        const productId = 1;
+        
+        mockApiMethods(api);
+        mockCartMethods(cart);
+        const store = initStore(api, cart);
+        
+        const cartComponent = <BrowserRouter basename={basename}>
+            <Provider store={store}>
+                <Cart />
+            </Provider>
+        </BrowserRouter>
+
+        const productPageComponent = <BrowserRouter basename={basename}>
+            <Provider store={store}>
+                <ProductDetails product={getDetailedProduct(productId)} />
+            </Provider>
+        </BrowserRouter>
+
+        const cartRender = render(cartComponent);
+        const productRender = render(productPageComponent);
+
+        await waitFor(() => {
+            expect(cartRender.queryByTestId("checkout-form")).toBeNull();
+        });
+
+        const addToCartButton = await productRender.findByTestId("add-to-cart");
+        fireEvent.click(addToCartButton);
+
+        await waitFor(() => {
+            expect(cartRender.queryByTestId("checkout-form")).not.toBeNull();
+        });
+    });
 });
+
